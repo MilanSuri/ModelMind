@@ -38,6 +38,18 @@ def normalize_col(s):
         .replace("-", "_")
     )
 
+def flatten_columns_unique(columns):
+    flattened = ['_'.join(filter(None, map(str, col))) for col in columns]
+    seen = {}
+    unique_cols = []
+    for col in flattened:
+        if col not in seen:
+            seen[col] = 0
+            unique_cols.append(col)
+        else:
+            seen[col] += 1
+            unique_cols.append(f"{col}_{seen[col]}")
+    return unique_cols
 
 def dataframe_to_text_table(df):
     # Create a copy, fill any NaN values with empty strings, and convert all data to string type
@@ -357,12 +369,12 @@ def query_detailed_summary(question, detailed_summary):
                     possible_departments_in_data = set()
                     for metric_key, metric_data in detailed_summary.items():
                         for k, v in metric_data.items():
-                            if isinstance(v, (int, float)) and 'dept' in k:  
+                            if isinstance(v, (int, float)) and 'dept' in k:
                                 possible_departments_in_data.add(k)
                             elif isinstance(v, dict):  # For nested departments
                                 possible_departments_in_data.add(k)  # Add parent key (e.g., 'sales')
                                 for nested_key in v.keys():
-                                    if 'dept' in nested_key: 
+                                    if 'dept' in nested_key:
                                         possible_departments_in_data.add(nested_key)
 
                     match_list_for_department = get_close_matches(normalized_ent, list(possible_departments_in_data),
@@ -538,7 +550,7 @@ def upload():
         uploaded_files[session_id] = file_bytes  # Store file bytes in-memory
 
         df = pd.read_excel(io.BytesIO(file_bytes), engine='openpyxl', header=[0, 1])
-        df.columns = ['_'.join(filter(None, [str(i) for i in col])) for col in df.columns]
+        df.columns = flatten_columns_unique(df.columns)
         logging.info(f"Flattened DataFrame columns after upload: {df.columns.tolist()}")
         logging.info(f"DataFrame head:\n{df.head().to_string()}")
 
@@ -609,12 +621,8 @@ def chat():
     try:
         # Re-read DataFrame and re-extract summaries on each chat request for robustness
         df = pd.read_excel(io.BytesIO(file_bytes), engine='openpyxl', header=[0, 1])
-
-        # Flatten MultiIndex columns to single strings
         df.columns = ['_'.join(filter(None, [str(i) for i in col])) for col in df.columns]
 
-        # Ensure column names are unique to avoid parsing issues
-        df.columns = pd.io.parsers.ParserBase({'names': df.columns})._maybe_dedup_names(df.columns)
 
         detailed_summaries = extract_detailed_summaries(df)
         summary = extract_financial_summary(df)  # Regenerate summary if needed for LLM
