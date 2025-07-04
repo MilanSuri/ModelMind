@@ -24,6 +24,8 @@ ModelMind helps financial analysts and business users quickly gain insights from
 - CSS (Tailwind)
 - JavaScript
 
+Install python libraries (except spaCy) [here](https://github.com/MilanSuri/ModelMind/blob/main/requirements.txt)
+
 ---
 
 ### Optimized File
