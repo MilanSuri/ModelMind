@@ -26,6 +26,11 @@ ModelMind helps financial analysts and business users quickly gain insights from
 
 Install python libraries (except spaCy) with pip freeze [here](https://github.com/MilanSuri/ModelMind/blob/main/requirements.txt)
 
+### Install Packages
+Running the following commands in your local environment will install all dependencies for the project:
+- pip install -r requirements.txt
+- pip install spacy
+
 ---
 
 ### Optimized File
